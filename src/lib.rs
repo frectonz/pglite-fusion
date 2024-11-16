@@ -1,0 +1,131 @@
+use std::{env, fs, path::PathBuf};
+
+use pgrx::prelude::*;
+use rusqlite::types::Value as SqliteValue;
+use rusqlite::Connection;
+use serde::{Deserialize, Serialize};
+use ulid::Ulid;
+
+pgrx::pg_module_magic!();
+
+#[derive(Serialize, Deserialize, PostgresType)]
+struct Sqlite {
+    data: Vec<u8>,
+}
+
+fn temp_file() -> PathBuf {
+    let temp_dir = env::temp_dir();
+    let ulid = Ulid::new();
+    let file_name = format!("pglite-fusion-{ulid}.sqlite3");
+    temp_dir.join(file_name)
+}
+
+#[pg_extern]
+fn empty_sqlite() -> Sqlite {
+    let temp = temp_file();
+    {
+        Connection::open(&temp).expect("couldn't create sqlite database");
+    }
+
+    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
+    Sqlite { data }
+}
+
+#[pg_extern]
+fn query_sqlite(
+    sqlite: Sqlite,
+    query: &str,
+) -> TableIterator<'_, (name!(sqlite_row, Vec<pgrx::Json>),)> {
+    let temp = temp_file();
+    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
+
+    let table = {
+        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        let mut stmt = conn.prepare(query).expect("couldn't prepare sqlite query");
+
+        let columns_len = stmt.column_count();
+        stmt.query_map((), |row| {
+            let mut rows = Vec::with_capacity(columns_len);
+            for i in 0..columns_len {
+                let val = rusqlite_value_to_json(row.get(i)?);
+                rows.push(pgrx::Json(val));
+            }
+            Ok((rows,))
+        })
+        .expect("query execution failed")
+        .collect::<Result<Vec<_>, _>>()
+        .expect("sqlite query returned an unexpected row")
+    };
+
+    TableIterator::new(table)
+}
+
+#[pg_extern]
+fn get_sqlite_text(mut row: Vec<pgrx::Json>, index: i32) -> Option<String> {
+    let col = row.remove(index as usize);
+    if let pgrx::Json(serde_json::Value::String(text)) = col {
+        Some(text)
+    } else {
+        None
+    }
+}
+
+#[pg_extern]
+fn get_sqlite_integer(mut row: Vec<pgrx::Json>, index: i32) -> Option<i64> {
+    let col = row.remove(index as usize);
+    col.0.as_i64()
+}
+
+#[pg_extern]
+fn get_sqlite_real(mut row: Vec<pgrx::Json>, index: i32) -> Option<f64> {
+    let col = row.remove(index as usize);
+    col.0.as_f64()
+}
+
+#[pg_extern]
+fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
+    let temp = temp_file();
+    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
+
+    {
+        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        conn.execute_batch(query).expect("query execution failed");
+    }
+
+    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
+    Sqlite { data }
+}
+
+fn rusqlite_value_to_json(v: SqliteValue) -> serde_json::Value {
+    use SqliteValue::*;
+    match v {
+        Null => serde_json::Value::Null,
+        Integer(x) => serde_json::json!(x),
+        Real(x) => serde_json::json!(x),
+        Text(s) => serde_json::Value::String(s),
+        Blob(s) => serde_json::json!(s),
+    }
+}
+
+#[cfg(any(test, feature = "pg_test"))]
+#[pg_schema]
+mod tests {
+    use pgrx::prelude::*;
+
+    #[pg_test]
+    fn test_hello_pglite_fusion() {}
+}
+
+/// This module is required by `cargo pgrx test` invocations.
+/// It must be visible at the root of your extension crate.
+#[cfg(test)]
+pub mod pg_test {
+    pub fn setup(_options: Vec<&str>) {
+        // perform one-off initialization when the pg_test framework starts
+    }
+
+    pub fn postgresql_conf_options() -> Vec<&'static str> {
+        // return any postgresql.conf settings that are required for your tests
+        vec![]
+    }
+}

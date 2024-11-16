@@ -1,0 +1,5 @@
+comment = 'pglite_fusion:  Created by pgrx'
+default_version = '@CARGO_VERSION@'
+module_pathname = '$libdir/pglite_fusion'
+relocatable = false
+superuser = true
