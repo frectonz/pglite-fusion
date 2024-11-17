@@ -30,29 +30,35 @@
         );
     in
     {
-      devShells = forAllSystems (pkgs: {
-        default = pkgs.mkShell {
-          buildInputs = [
-            pkgs.bacon
-            pkgs.cargo-pgrx
-            pkgs.rust-analyzer
-            pkgs.rust-bin.stable.latest.default
-          ];
+      devShells = forAllSystems (
+        pkgs:
+        let
+          cargo-pgrx = import ./nix/pgrx.nix { inherit pkgs; };
+        in
+        {
+          default = pkgs.mkShell {
+            buildInputs = [
+              cargo-pgrx
+              pkgs.bacon
+              pkgs.rust-analyzer
+              pkgs.rust-bin.stable.latest.default
+            ];
 
-          inputsFrom = with pkgs; [
-            postgresql_12
-            postgresql_13
-            postgresql_14
-            postgresql_15
-            postgresql_16
-            postgresql_17
-          ];
+            inputsFrom = with pkgs; [
+              postgresql_12
+              postgresql_13
+              postgresql_14
+              postgresql_15
+              postgresql_16
+              postgresql_17
+            ];
 
-          nativeBuildInputs = [
-            pkgs.rustPlatform.bindgenHook
-          ];
-        };
-      });
+            nativeBuildInputs = [
+              pkgs.rustPlatform.bindgenHook
+            ];
+          };
+        }
+      );
 
       formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
     };
