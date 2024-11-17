@@ -1,0 +1,24 @@
+name: Test Build
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: pgxn/pgxn-tools
+    strategy:
+      matrix:
+        pg: [12, 13, 14, 15, 16, 17]
+    name: 🐘 Postgres ${{ matrix.pg }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Start PostgreSQL ${{ matrix.pg }}
+        run: pg-start ${{ matrix.pg }}
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Test on PostgreSQL ${{ matrix.pg }}
+        run: pgrx-build-test
