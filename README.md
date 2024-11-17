@@ -30,7 +30,7 @@ WHERE name = 'frectonz';
 SELECT 
     name, 
     (
-        SELECT get_sqlite_text(sqlite_row, 0) 
+        SELECT json_agg(get_sqlite_text(sqlite_row, 0))
         FROM query_sqlite(
             database, 
             'SELECT * FROM todos'
