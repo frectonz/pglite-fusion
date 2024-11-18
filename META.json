@@ -1,0 +1,45 @@
+{
+   "name": "pglite_fusion",
+   "abstract": "Embed an SQLite database in your PostgreSQL table",
+   "description": "The pglite_fusion extension provides an SQLite type and functions to work with that type that let's you embed an SQLite database in your PostgreSQL table as a column type.",
+   "version": "0.0.0",
+   "maintainer": [
+      "Fraol Lemecha <fraol0912@gmail.com>"
+   ],
+   "license": "mit",
+   "provides": {
+      "pglite_fusion": {
+         "abstract": "Embed an SQLite database in your PostgreSQL table",
+         "file": "src/lib.rs",
+         "docfile": "README.md",
+         "version": "0.0.0"
+      }
+   },
+   "prereqs": {
+      "runtime": {
+         "requires": {
+            "PostgreSQL": "12.0.0"
+         }
+      }
+   },
+   "resources": {
+      "bugtracker": {
+         "web": "https://github.com/frectonz/pglite-fusion/issues"
+      },
+      "repository": {
+         "url": "git://github.com/frectonz/pglite-fusion.git",
+         "web": "https://github.com/frectonz/pglite-fusion",
+         "type": "git"
+      }
+   },
+   "generated_by": "Fraol Lemecha",
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "https://pgxn.org/meta/spec.txt"
+   },
+   "tags": [
+      "pgrx",
+      "sqlite",
+      "rust"
+   ]
+}
