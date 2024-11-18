@@ -67,7 +67,7 @@
           cargo-pgrx = import ./nix/pgrx.nix { inherit pkgs; };
 
           pname = "pglite-fusion";
-          version = "0.0.0";
+          version = "0.0.1";
 
           postgres = pkgs.dockerTools.pullImage {
             imageName = "postgres";
