@@ -2,11 +2,27 @@
 
 Embed an SQLite database in your PostgreSQL table. AKA multitenancy has been solved.
 
+## Usage
+
+Run a PostgreSQL database that has `ppglite-fusion` already installed.
+
+```bash
+docker run --network=host frectonz/pglite-fusion
+```
+
+Connect to the PostgreSQL database using `psql`.
+
+```bash
+psql postgresql://postgres@localhost:5432/
+```
+
+Here's some demo usage example.
+
 ```sql
 -- Load PG extension
 CREATE EXTENSION pglite_fusion;
 
--- Create table wit an SQLite column
+-- Create a table with an SQLite column
 CREATE TABLE people (
     name     TEXT NOT NULL,
     database SQLITE DEFAULT execute_sqlite(
@@ -26,7 +42,15 @@ SET database = execute_sqlite(
 )
 WHERE name = 'frectonz';
 
--- Fetch frectonz's info form db
+-- Create a todo for "frectonz"
+UPDATE people
+SET database = execute_sqlite(
+    database,
+    'INSERT INTO todos VALUES (''buy milk'')'
+)
+WHERE name = 'frectonz';
+
+-- Fetch frectonz's info
 SELECT 
     name, 
     (
@@ -42,7 +66,7 @@ WHERE
     name = 'frectonz';
 ```
 
-## Run it
+## Build it from source
 
 ```bash
 git clone git@github.com:frectonz/pglite-fusion.git 
