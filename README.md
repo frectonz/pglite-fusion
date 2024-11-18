@@ -4,7 +4,7 @@ Embed an SQLite database in your PostgreSQL table. AKA multitenancy has been sol
 
 ## Usage
 
-Run a PostgreSQL database that has `ppglite-fusion` already installed.
+Run a PostgreSQL database that has `pglite-fusion` already installed.
 
 ```bash
 docker run --network=host frectonz/pglite-fusion
@@ -16,7 +16,7 @@ Connect to the PostgreSQL database using `psql`.
 psql postgresql://postgres@localhost:5432/
 ```
 
-Here's some demo usage example.
+Here's some demo usage.
 
 ```sql
 -- Load PG extension
