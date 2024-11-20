@@ -25,10 +25,7 @@ CREATE EXTENSION pglite_fusion;
 -- Create a table with an SQLite column
 CREATE TABLE people (
     name     TEXT NOT NULL,
-    database SQLITE DEFAULT execute_sqlite(
-        empty_sqlite(),
-        'CREATE TABLE todos (task TEXT)'
-    )
+    database SQLITE DEFAULT init_sqlite('CREATE TABLE todos (task TEXT)')
 );
 
 -- Insert a row into the people table
@@ -128,6 +125,26 @@ SET database = execute_sqlite(
     'INSERT INTO todos VALUES (''solve multitenancy'')'
 )
 WHERE name = 'frectonz';
+```
+
+-----
+
+### `init_sqlite`
+
+Creates an SQLite database with an initialization query already applied on it. This can be used to initialize a SQLite database with the expected tables already created.
+
+#### Parameters:
+
+- `query`: The SQL statement to execute on the SQLite database.
+
+##### Example Usage:
+
+```sql
+
+CREATE TABLE people (
+    name     TEXT NOT NULL,
+    database SQLITE DEFAULT init_sqlite('CREATE TABLE todos (task TEXT)')
+);
 ```
 
 -----
