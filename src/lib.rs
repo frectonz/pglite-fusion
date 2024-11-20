@@ -44,10 +44,45 @@ fn init_sqlite(query: &str) -> Sqlite {
 }
 
 #[pg_extern]
-fn query_sqlite(
-    sqlite: Sqlite,
-    query: &str,
-) -> TableIterator<'_, (name!(sqlite_row, Vec<pgrx::Json>),)> {
+fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
+    let temp = temp_file();
+    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
+
+    {
+        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        conn.execute_batch(query).expect("query execution failed");
+    }
+
+    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
+    Sqlite { data }
+}
+
+type SqliteRow = Vec<pgrx::Json>;
+
+#[pg_extern]
+fn get_sqlite_text(mut row: SqliteRow, index: i32) -> Option<String> {
+    let col = row.remove(index as usize);
+    if let pgrx::Json(serde_json::Value::String(text)) = col {
+        Some(text)
+    } else {
+        None
+    }
+}
+
+#[pg_extern]
+fn get_sqlite_integer(mut row: SqliteRow, index: i32) -> Option<i64> {
+    let col = row.remove(index as usize);
+    col.0.as_i64()
+}
+
+#[pg_extern]
+fn get_sqlite_real(mut row: SqliteRow, index: i32) -> Option<f64> {
+    let col = row.remove(index as usize);
+    col.0.as_f64()
+}
+
+#[pg_extern]
+fn query_sqlite(sqlite: Sqlite, query: &str) -> TableIterator<'_, (name!(sqlite_row, SqliteRow),)> {
     let temp = temp_file();
     fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
 
@@ -70,42 +105,6 @@ fn query_sqlite(
     };
 
     TableIterator::new(table)
-}
-
-#[pg_extern]
-fn get_sqlite_text(mut row: Vec<pgrx::Json>, index: i32) -> Option<String> {
-    let col = row.remove(index as usize);
-    if let pgrx::Json(serde_json::Value::String(text)) = col {
-        Some(text)
-    } else {
-        None
-    }
-}
-
-#[pg_extern]
-fn get_sqlite_integer(mut row: Vec<pgrx::Json>, index: i32) -> Option<i64> {
-    let col = row.remove(index as usize);
-    col.0.as_i64()
-}
-
-#[pg_extern]
-fn get_sqlite_real(mut row: Vec<pgrx::Json>, index: i32) -> Option<f64> {
-    let col = row.remove(index as usize);
-    col.0.as_f64()
-}
-
-#[pg_extern]
-fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
-    let temp = temp_file();
-    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
-
-    {
-        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
-        conn.execute_batch(query).expect("query execution failed");
-    }
-
-    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
-    Sqlite { data }
 }
 
 fn rusqlite_value_to_json(v: SqliteValue) -> serde_json::Value {
