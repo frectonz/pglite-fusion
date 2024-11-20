@@ -32,6 +32,18 @@ fn empty_sqlite() -> Sqlite {
 }
 
 #[pg_extern]
+fn init_sqlite(query: &str) -> Sqlite {
+    let temp = temp_file();
+    {
+        let conn = Connection::open(&temp).expect("couldn't create sqlite database");
+        conn.execute_batch(query).expect("query execution failed");
+    }
+
+    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
+    Sqlite { data }
+}
+
+#[pg_extern]
 fn query_sqlite(
     sqlite: Sqlite,
     query: &str,
