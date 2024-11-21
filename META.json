@@ -2,7 +2,7 @@
    "name": "pglite_fusion",
    "abstract": "Embed an SQLite database in your PostgreSQL table",
    "description": "The pglite_fusion extension provides an SQLite type and functions to work with that type that let's you embed an SQLite database in your PostgreSQL table as a column type.",
-   "version": "0.0.1",
+   "version": "0.0.2",
    "maintainer": [
       "Fraol Lemecha <fraol0912@gmail.com>"
    ],
@@ -12,7 +12,7 @@
          "abstract": "Embed an SQLite database in your PostgreSQL table",
          "file": "src/lib.rs",
          "docfile": "README.md",
-         "version": "0.0.1"
+         "version": "0.0.2"
       }
    },
    "prereqs": {
