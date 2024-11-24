@@ -69,7 +69,7 @@ WHERE
 git clone git@github.com:frectonz/pglite-fusion.git 
 cd pglite-fusion
 nix develop
-cargo pgrx init # this will take some time, since you will compiling postgres from source
+cargo pgrx init --pg13 download # this will take some time, since you are compiling postgres from source
 cargo pgrx run # this will drop you into a psql repl, you can then follow the example shown above
 ```
 
