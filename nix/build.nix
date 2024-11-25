@@ -42,7 +42,7 @@ let
 in
 pkgs.rustPlatform.buildRustPackage {
   pname = "pglite-fusion";
-  version = "0.0.2";
+  version = "0.0.3";
 
   src = pkgs.lib.cleanSourceWith {
     src = pkgs.lib.cleanSource ../.;
