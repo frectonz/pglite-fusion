@@ -15,37 +15,37 @@ docker run --network=host frectonz/pglite-fusion
 ### PostgreSQL 12
 
 ```bash
-docker run --network=host frectonz/pglite-fusion:pg-12
+docker run --network=host frectonz/pglite-fusion:pg12
 ```
 
 ### PostgreSQL 13
 
 ```bash
-docker run --network=host frectonz/pglite-fusion:pg-13
+docker run --network=host frectonz/pglite-fusion:pg13
 ```
 
 ### PostgreSQL 14
 
 ```bash
-docker run --network=host frectonz/pglite-fusion:pg-14
+docker run --network=host frectonz/pglite-fusion:pg14
 ```
 
 ### PostgreSQL 15
 
 ```bash
-docker run --network=host frectonz/pglite-fusion:pg-15
+docker run --network=host frectonz/pglite-fusion:pg15
 ```
 
 ### PostgreSQL 16
 
 ```bash
-docker run --network=host frectonz/pglite-fusion:pg-16
+docker run --network=host frectonz/pglite-fusion:pg16
 ```
 
 ### PostgreSQL 17
 
 ```bash
-docker run --network=host frectonz/pglite-fusion:pg-17
+docker run --network=host frectonz/pglite-fusion:pg17
 ```
 
 Connect to the PostgreSQL database using `psql`.
