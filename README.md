@@ -301,3 +301,20 @@ Loads a SQLite database from a file into PostgreSQL.
 ```sql
 SELECT import_sqlite_from_file('/tmp/mydb.sqlite');
 ```
+
+---
+
+### `export_sqlite_to_file`
+
+Saves the SQLite database to a file on disk.
+
+#### Parameters:
+
+- `sqlite`: The SQLite database.
+- `path`: The file path where the database should be saved.
+
+#### Example Usage:
+
+```sql
+SELECT export_sqlite_to_file(database, '/tmp/mydb.sqlite');
+```

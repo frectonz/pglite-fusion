@@ -50,6 +50,11 @@ fn import_sqlite_from_file(path: &str) -> Sqlite {
 }
 
 #[pg_extern(volatile, parallel_unsafe)]
+fn export_sqlite_to_file(sqlite: Sqlite, path: &str) -> bool {
+    fs::write(path, sqlite.data).is_ok()
+}
+
+#[pg_extern(volatile, parallel_unsafe)]
 fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
     let temp = temp_file();
     fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
