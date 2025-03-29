@@ -57,6 +57,16 @@ fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
     Sqlite { data }
 }
 
+#[pg_extern(immutable, parallel_safe)]
+fn is_valid_sqlite(sqlite: Sqlite) -> bool {
+    let temp = temp_file();
+    if fs::write(&temp, sqlite.data).is_err() {
+        return false;
+    }
+
+    Connection::open(&temp).is_ok()
+}
+
 type SqliteRow = Vec<pgrx::Json>;
 
 #[pg_extern(strict, immutable, parallel_safe)]

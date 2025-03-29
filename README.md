@@ -237,3 +237,19 @@ Extracts a real (floating-point) value from a specific column in a row returned 
 SELECT get_sqlite_real(sqlite_row, 2) 
 FROM query_sqlite(database, 'SELECT * FROM todos');
 ```
+
+---
+
+### `is_valid_sqlite`
+
+Checks whether a given SQLite database is valid. This function attempts to open the SQLite database and returns true if it is a valid database.
+
+#### Parameters:
+
+- `sqlite`: A SQLite database stored as a binary blob.
+
+#### Example Usage:
+
+```sql
+SELECT is_valid_sqlite(database);
+```
