@@ -269,3 +269,19 @@ Lists all table names present in the SQLite database.
 ```sql
 SELECT table_name FROM list_sqlite_tables(database);
 ```
+
+---
+
+### `sqlite_schema`
+
+Retrieves the SQL schema of each table in the SQLite database, the CREATE TABLE statements for each table in the SQLite database.
+
+#### Parameters:
+
+- `sqlite`: A SQLite database stored as a binary blob.
+
+#### Example Usage:
+
+```sql
+SELECT schema_sql FROM sqlite_schema(database);
+```
