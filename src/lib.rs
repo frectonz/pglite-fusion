@@ -68,6 +68,11 @@ fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
     Sqlite { data }
 }
 
+#[pg_extern(volatile, parallel_unsafe)]
+fn vacuum_sqlite(sqlite: Sqlite) -> Sqlite {
+    execute_sqlite(sqlite, "VACUUM")
+}
+
 #[pg_extern(immutable, parallel_safe)]
 fn is_valid_sqlite(sqlite: Sqlite) -> bool {
     let temp = temp_file();

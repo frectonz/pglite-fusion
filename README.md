@@ -318,3 +318,19 @@ Saves the SQLite database to a file on disk.
 ```sql
 SELECT export_sqlite_to_file(database, '/tmp/mydb.sqlite');
 ```
+
+---
+
+### `vacuum_sqlite`
+
+Runs the SQLite `VACUUM` command to optimize storage by reclaiming unused space.
+
+#### Parameters:
+
+- `sqlite`: The SQLite database.
+
+#### Example Usage:
+
+```sql
+SELECT vacuum_sqlite(database);
+```
