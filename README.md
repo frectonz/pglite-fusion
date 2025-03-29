@@ -285,3 +285,19 @@ Retrieves the SQL schema of each table in the SQLite database, the CREATE TABLE 
 ```sql
 SELECT schema_sql FROM sqlite_schema(database);
 ```
+
+---
+
+### `import_sqlite_from_file`
+
+Loads a SQLite database from a file into PostgreSQL.
+
+#### Parameters:
+
+- `path`: The file path of the SQLite database to load.
+
+#### Example Usage:
+
+```sql
+SELECT import_sqlite_from_file('/tmp/mydb.sqlite');
+```

@@ -44,6 +44,12 @@ fn init_sqlite(query: &str) -> Sqlite {
 }
 
 #[pg_extern(volatile, parallel_unsafe)]
+fn import_sqlite_from_file(path: &str) -> Sqlite {
+    let data = fs::read(path).expect("Failed to read SQLite database file");
+    Sqlite { data }
+}
+
+#[pg_extern(volatile, parallel_unsafe)]
 fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
     let temp = temp_file();
     fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
