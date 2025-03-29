@@ -117,6 +117,29 @@ fn query_sqlite(sqlite: Sqlite, query: &str) -> TableIterator<'_, (name!(sqlite_
     TableIterator::new(table)
 }
 
+#[pg_extern(volatile, parallel_unsafe)]
+fn list_sqlite_tables(sqlite: Sqlite) -> TableIterator<'static, (name!(table_name, String),)> {
+    let temp = temp_file();
+    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
+
+    let table = {
+        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        let mut stmt = conn
+            .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+            .expect("couldn't prepare sqlite query");
+
+        stmt.query_map((), |row| {
+            let name = row.get::<_, String>(0)?;
+            Ok((name,))
+        })
+        .expect("query execution failed")
+        .collect::<Result<Vec<_>, _>>()
+        .expect("sqlite query returned an unexpected row")
+    };
+
+    TableIterator::new(table)
+}
+
 fn rusqlite_value_to_json(v: SqliteValue) -> serde_json::Value {
     use SqliteValue::*;
     match v {
