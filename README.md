@@ -334,3 +334,20 @@ Runs the SQLite `VACUUM` command to optimize storage by reclaiming unused space.
 ```sql
 SELECT vacuum_sqlite(database);
 ```
+
+---
+
+### `count_sqlite_rows`
+
+Counts the number of rows in a specified table within the SQLite database.
+
+#### Parameters:
+
+- `sqlite`: The SQLite database.
+- `table`: The name of the table to count rows from.
+
+#### Example Usage:
+
+```sql
+SELECT count_sqlite_rows(database, 'users');
+```

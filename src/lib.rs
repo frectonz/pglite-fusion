@@ -179,6 +179,29 @@ fn sqlite_schema(sqlite: Sqlite) -> TableIterator<'static, (name!(schema_sql, St
     TableIterator::new(table)
 }
 
+#[pg_extern(volatile, parallel_unsafe)]
+fn count_sqlite_rows(sqlite: Sqlite, table: &str) -> i32 {
+    // Validate table name (only allow alphanumeric and underscores)
+    if !table.chars().all(|c| c.is_alphanumeric() || c == '_') {
+        panic!("Invalid table name: {}", table);
+    }
+
+    let temp = temp_file();
+    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
+
+    let count = {
+        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        let count: i32 = conn
+            .query_row(&format!("SELECT COUNT(*) FROM {table}"), (), |row| {
+                row.get(0)
+            })
+            .expect("couldn't query row count for given table");
+        count
+    };
+
+    count
+}
+
 fn rusqlite_value_to_json(v: SqliteValue) -> serde_json::Value {
     use SqliteValue::*;
     match v {
