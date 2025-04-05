@@ -154,7 +154,7 @@ Executes a SQL statement (such as `INSERT`, `UPDATE`, or `DELETE`) on a SQLite d
 - `sqlite`: The SQLite database to execute the SQL query on, stored as a binary object.
 - `query`: The SQL statement to execute on the SQLite database.
 
-##### Example Usage:
+#### Example Usage:
 
 ```sql
 UPDATE people
@@ -175,7 +175,7 @@ Creates an SQLite database with an initialization query already applied on it. T
 
 - `query`: The SQL statement to execute on the SQLite database.
 
-##### Example Usage:
+#### Example Usage:
 
 ```sql
 
