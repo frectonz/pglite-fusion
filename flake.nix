@@ -66,7 +66,7 @@
           cargo-pgrx = import ./nix/pgrx.nix { inherit pkgs; };
 
           pname = "pglite-fusion";
-          version = "0.0.4";
+          version = "0.0.5";
 
           buildPgliteFusionImage =
             {
