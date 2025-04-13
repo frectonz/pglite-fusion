@@ -113,6 +113,8 @@ cargo pgrx run # this will drop you into a psql repl, you can then follow the ex
 
 ## API Documentation
 
+Every function is parallel-safe except for `import_sqlite_from_file` and `export_sqlite_to_file`.
+
 ### `empty_sqlite`
 
 Creates an empty SQLite database and returns it as a binary object. This can be used to initialize an empty SQLite database in a PostgreSQL column.
