@@ -1097,7 +1097,7 @@ dependencies = [
 
 [[package]]
 name = "pglite_fusion"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "pgrx",
  "pgrx-tests",
