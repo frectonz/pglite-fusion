@@ -1,10 +1,11 @@
-use std::{env, fs, path::PathBuf};
+use std::time::Duration;
 
 use pgrx::prelude::*;
-use rusqlite::types::Value as SqliteValue;
+use rusqlite::backup::Backup;
+use rusqlite::serialize::OwnedData;
 use rusqlite::Connection;
+use rusqlite::{types::Value as SqliteValue, DatabaseName};
 use serde::{Deserialize, Serialize};
-use ulid::Ulid;
 
 pgrx::pg_module_magic!();
 
@@ -13,74 +14,87 @@ struct Sqlite {
     data: Vec<u8>,
 }
 
-fn temp_file() -> PathBuf {
-    let temp_dir = env::temp_dir();
-    let ulid = Ulid::new();
-    let file_name = format!("pglite-fusion-{ulid}.sqlite3");
-    temp_dir.join(file_name)
+impl Sqlite {
+    fn load(self) -> Connection {
+        let mut buf = self.data;
+
+        let src_ptr = buf.as_mut_ptr();
+        let src_len = buf.len();
+        std::mem::forget(buf);
+
+        let mut conn =
+            Connection::open_in_memory().expect("couldn't open an sqlite database in memory");
+
+        unsafe {
+            // Allocate memory acording to pointer
+            let res_ptr = rusqlite::ffi::sqlite3_malloc(src_len as std::ffi::c_int)
+                .cast::<std::ffi::c_uchar>();
+            let res_ptr: std::ptr::NonNull<u8> =
+                std::ptr::NonNull::new(res_ptr).expect("ptr on db deserialization was null");
+
+            let buf: *mut std::ffi::c_uchar = res_ptr.as_ptr();
+            src_ptr.copy_to_nonoverlapping(buf, src_len);
+
+            let data = OwnedData::from_raw_nonnull(res_ptr, src_len);
+
+            conn.deserialize(DatabaseName::Main, data, false)
+                .expect("couldn't deserialize the sqlite database");
+        }
+
+        conn
+    }
+
+    fn dump(conn: Connection) -> Self {
+        let data = conn
+            .serialize(DatabaseName::Main)
+            .expect("couldn't serialize database")
+            .to_vec();
+
+        Self { data }
+    }
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(volatile, parallel_safe)]
 fn empty_sqlite() -> Sqlite {
-    let temp = temp_file();
-    {
-        Connection::open(&temp).expect("couldn't create sqlite database");
-    }
-
-    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
-    Sqlite { data }
+    let conn = Connection::open_in_memory().expect("couldn't create sqlite database");
+    Sqlite::dump(conn)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, volatile, parallel_safe)]
 fn init_sqlite(query: &str) -> Sqlite {
-    let temp = temp_file();
-    {
-        let conn = Connection::open(&temp).expect("couldn't create sqlite database");
-        conn.execute_batch(query).expect("query execution failed");
-    }
-
-    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
-    Sqlite { data }
+    let conn = Connection::open_in_memory().expect("couldn't create sqlite database");
+    conn.execute_batch(query).expect("query execution failed");
+    Sqlite::dump(conn)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, volatile, parallel_unsafe)]
 fn import_sqlite_from_file(path: &str) -> Sqlite {
-    let data = fs::read(path).expect("Failed to read SQLite database file");
-    Sqlite { data }
+    let conn = Connection::open(path).expect("couldn't create sqlite database");
+    Sqlite::dump(conn)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, volatile, parallel_unsafe)]
 fn export_sqlite_to_file(sqlite: Sqlite, path: &str) -> bool {
-    fs::write(path, sqlite.data).is_ok()
+    let src = sqlite.load();
+    let mut dest = Connection::open(path).expect("couldn't create sqlite database");
+
+    let backup = Backup::new(&src, &mut dest).expect("couldn't create backup operation");
+    backup
+        .run_to_completion(5, Duration::from_millis(250), None)
+        .is_ok()
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, volatile, parallel_safe)]
 fn execute_sqlite(sqlite: Sqlite, query: &str) -> Sqlite {
-    let temp = temp_file();
-    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
+    let conn = sqlite.load();
+    conn.execute_batch(query).expect("query execution failed");
 
-    {
-        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
-        conn.execute_batch(query).expect("query execution failed");
-    }
-
-    let data = fs::read(&temp).expect("couldn't read newly created sqlite database file");
-    Sqlite { data }
+    Sqlite::dump(conn)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, volatile, parallel_safe)]
 fn vacuum_sqlite(sqlite: Sqlite) -> Sqlite {
     execute_sqlite(sqlite, "VACUUM")
-}
-
-#[pg_extern(immutable, parallel_safe)]
-fn is_valid_sqlite(sqlite: Sqlite) -> bool {
-    let temp = temp_file();
-    if fs::write(&temp, sqlite.data).is_err() {
-        return false;
-    }
-
-    Connection::open(&temp).is_ok()
 }
 
 type SqliteRow = Vec<pgrx::Json>;
@@ -107,13 +121,10 @@ fn get_sqlite_real(mut row: SqliteRow, index: i32) -> Option<f64> {
     col.0.as_f64()
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, stable, parallel_safe)]
 fn query_sqlite(sqlite: Sqlite, query: &str) -> TableIterator<'_, (name!(sqlite_row, SqliteRow),)> {
-    let temp = temp_file();
-    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
-
     let table = {
-        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        let conn = sqlite.load();
         let mut stmt = conn.prepare(query).expect("couldn't prepare sqlite query");
 
         let columns_len = stmt.column_count();
@@ -133,13 +144,10 @@ fn query_sqlite(sqlite: Sqlite, query: &str) -> TableIterator<'_, (name!(sqlite_
     TableIterator::new(table)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, stable, parallel_safe)]
 fn list_sqlite_tables(sqlite: Sqlite) -> TableIterator<'static, (name!(table_name, String),)> {
-    let temp = temp_file();
-    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
-
     let table = {
-        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        let conn = sqlite.load();
         let mut stmt = conn
             .prepare("SELECT name FROM sqlite_master WHERE type='table'")
             .expect("couldn't prepare sqlite query");
@@ -156,13 +164,10 @@ fn list_sqlite_tables(sqlite: Sqlite) -> TableIterator<'static, (name!(table_nam
     TableIterator::new(table)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, stable, parallel_safe)]
 fn sqlite_schema(sqlite: Sqlite) -> TableIterator<'static, (name!(schema_sql, String),)> {
-    let temp = temp_file();
-    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
-
     let table = {
-        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+        let conn = sqlite.load();
         let mut stmt = conn
             .prepare("SELECT sql FROM sqlite_master WHERE sql IS NOT NULL")
             .expect("couldn't prepare sqlite query");
@@ -179,27 +184,22 @@ fn sqlite_schema(sqlite: Sqlite) -> TableIterator<'static, (name!(schema_sql, St
     TableIterator::new(table)
 }
 
-#[pg_extern(volatile, parallel_unsafe)]
+#[pg_extern(strict, stable, parallel_safe)]
 fn count_sqlite_rows(sqlite: Sqlite, table: &str) -> i32 {
     // Validate table name (only allow alphanumeric and underscores)
     if !table.chars().all(|c| c.is_alphanumeric() || c == '_') {
         panic!("Invalid table name: {}", table);
     }
 
-    let temp = temp_file();
-    fs::write(&temp, sqlite.data).expect("failed to create a temprary sqlite database file");
-
-    let count = {
-        let conn = Connection::open(&temp).expect("couldn't open sqlite database");
+    {
+        let conn = sqlite.load();
         let count: i32 = conn
             .query_row(&format!("SELECT COUNT(*) FROM {table}"), (), |row| {
                 row.get(0)
             })
             .expect("couldn't query row count for given table");
         count
-    };
-
-    count
+    }
 }
 
 fn rusqlite_value_to_json(v: SqliteValue) -> serde_json::Value {
