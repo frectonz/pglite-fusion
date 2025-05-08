@@ -145,6 +145,28 @@ fn query_sqlite(sqlite: Sqlite, query: &str) -> TableIterator<'_, (name!(sqlite_
 }
 
 #[pg_extern(strict, stable, parallel_safe)]
+fn query_sqlite_json(sqlite: Sqlite, query: &str) -> Option<pgrx::Json> {
+    let conn = sqlite.load();
+    let mut stmt = conn.prepare(query).ok()?;
+    let column_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
+
+    let results = stmt
+        .query_map([], |row| {
+            let mut obj = serde_json::Map::new();
+            for (i, name) in column_names.iter().enumerate() {
+                let val = row.get::<_, SqliteValue>(i)?;
+                obj.insert(name.clone(), rusqlite_value_to_json(val));
+            }
+            Ok(serde_json::Value::Object(obj))
+        })
+        .ok()?
+        .collect::<Result<Vec<_>, _>>()
+        .ok()?;
+
+    Some(pgrx::Json(serde_json::Value::Array(results)))
+}
+
+#[pg_extern(strict, stable, parallel_safe)]
 fn list_sqlite_tables(sqlite: Sqlite) -> TableIterator<'static, (name!(table_name, String),)> {
     let table = {
         let conn = sqlite.load();
