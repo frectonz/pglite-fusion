@@ -114,32 +114,32 @@
           pg13 = buildPgliteFusionImage {
             imageDigest = "sha256:80ff9e2086e68aef09839045df1f07016b869d94cbd12c6462a4b300878cfdac";
             imageSha256 = "sha256-iaUdJa/l0rgNkZR/FUoJ4bzmW/2CRWyk+eMHibBqIus=";
-            postgresDev = pkgs.postgresql_13.dev;
+            postgresDev = pkgs.postgresql_13;
           };
           pg14 = buildPgliteFusionImage {
             imageDigest = "sha256:78b9deeca08fa9749a00e9d30bc879f8f8d021af854c73e2c339b752cb6d708a";
             imageSha256 = "sha256-LV2V6kuctIjN4gMxfopZSdivFtz7ks+AGmYQ4ets8b0=";
-            postgresDev = pkgs.postgresql_14.dev;
+            postgresDev = pkgs.postgresql_14;
           };
           pg15 = buildPgliteFusionImage {
             imageDigest = "sha256:a35b3c0190dac5a82ec1778b34cb4963bdd9d161f80381a6297be6e2c3c13a7c";
             imageSha256 = "sha256-ZK6eBPA50mY99uSF3+UdT4eBm/3komc6sfWb1qw1N7k=";
-            postgresDev = pkgs.postgresql_15.dev;
+            postgresDev = pkgs.postgresql_15;
           };
           pg16 = buildPgliteFusionImage {
             imageDigest = "sha256:5d65b8bdb20369ea902b987aa63cfe4983130bc8cd2c25830d126636b80b608d";
             imageSha256 = "sha256-5JhtZaCLj6SnJzjhC5A2yrP6fipuaQKHSxm3jhxSfNg=";
-            postgresDev = pkgs.postgresql_16.dev;
+            postgresDev = pkgs.postgresql_16;
           };
           pg17 = buildPgliteFusionImage {
             imageDigest = "sha256:994cc3113ce004ae73df11f0dbc5088cbe6bb0da1691dd7e6f55474202a4f211";
             imageSha256 = "sha256-OzqtbX89/lBP2mzhSccuad5suUz/uw/gBgeIW3BTbdc=";
-            postgresDev = pkgs.postgresql_17.dev;
+            postgresDev = pkgs.postgresql_17;
           };
           pg18 = buildPgliteFusionImage {
             imageDigest = "sha256:1ffc019dae94eca6b09a49ca67d37398951346de3c3d0cfe23d8d4ca33da83fb";
             imageSha256 = "";
-            postgresDev = pkgs.postgresql_18.dev;
+            postgresDev = pkgs.postgresql_18;
           };
         in
         {

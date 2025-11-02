@@ -13,6 +13,7 @@ let
     cp -r -L ${postgresql}/. $PGRX_HOME/${postgresMajor}/
     chmod -R ugo+w $PGRX_HOME/${postgresMajor}
     cp -r -L ${postgresql.lib}/lib/. $PGRX_HOME/${postgresMajor}/lib/
+    cp -r -L ${postgresql.pg_config}/bin/pg_config $PGRX_HOME/${postgresMajor}/bin/pg_config
 
     ${pkgs.cargo-pgrx}/bin/cargo-pgrx pgrx init \
       --pg${postgresMajor} $PGRX_HOME/${postgresMajor}/bin/pg_config
@@ -60,7 +61,7 @@ pkgs.rustPlatform.buildRustPackage {
   postBuild = ''
     if [ -f "pglite_fusion.control" ]; then
       export NIX_PGLIBDIR=${postgresql.out}/share/postgresql/extension/
-      ${pkgs.cargo-pgrx}/bin/cargo-pgrx pgrx package --pg-config ${postgresql}/bin/pg_config --out-dir the-thing
+      ${pkgs.cargo-pgrx}/bin/cargo-pgrx pgrx package --pg-config ${postgresql.pg_config}/bin/pg_config --out-dir the-thing
       export NIX_PGLIBDIR=$PGRX_HOME/${postgresMajor}/lib
     fi
   '';
