@@ -1,6 +1,5 @@
 {
   pkgs,
-  cargo-pgrx,
   postgresql,
 }:
 
@@ -15,7 +14,7 @@ let
     chmod -R ugo+w $PGRX_HOME/${postgresMajor}
     cp -r -L ${postgresql.lib}/lib/. $PGRX_HOME/${postgresMajor}/lib/
 
-    ${cargo-pgrx}/bin/cargo-pgrx pgrx init \
+    ${pkgs.cargo-pgrx}/bin/cargo-pgrx pgrx init \
       --pg${postgresMajor} $PGRX_HOME/${postgresMajor}/bin/pg_config
   '';
 
@@ -61,14 +60,14 @@ pkgs.rustPlatform.buildRustPackage {
   postBuild = ''
     if [ -f "pglite_fusion.control" ]; then
       export NIX_PGLIBDIR=${postgresql.out}/share/postgresql/extension/
-      ${cargo-pgrx}/bin/cargo-pgrx pgrx package --pg-config ${postgresql}/bin/pg_config --out-dir the-thing
+      ${pkgs.cargo-pgrx}/bin/cargo-pgrx pgrx package --pg-config ${postgresql}/bin/pg_config --out-dir the-thing
       export NIX_PGLIBDIR=$PGRX_HOME/${postgresMajor}/lib
     fi
   '';
 
   preFixup = ''
     if [ -f "pglite_fusion.control" ]; then
-      ${cargo-pgrx}/bin/cargo-pgrx pgrx stop all
+      ${pkgs.cargo-pgrx}/bin/cargo-pgrx pgrx stop all
       rm -rfv $out/target*
     fi
   '';
