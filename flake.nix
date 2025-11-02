@@ -17,7 +17,10 @@
       forAllSystems =
         fn:
         let
-          systems = [ "x86_64-linux" "aarch64-darwin" ];
+          systems = [
+            "x86_64-linux"
+            "aarch64-darwin"
+          ];
           overlays = [ (import rust-overlay) ];
         in
         nixpkgs.lib.genAttrs systems (
@@ -30,32 +33,29 @@
         );
     in
     {
-      devShells = forAllSystems (
-        pkgs:
-        {
-          default = pkgs.mkShell {
-            buildInputs = [
-              pkgs.cargo-pgrx
-              pkgs.bacon
-              pkgs.rust-analyzer
-              pkgs.rust-bin.stable.latest.default
-            ];
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.mkShell {
+          buildInputs = [
+            pkgs.cargo-pgrx
+            pkgs.bacon
+            pkgs.rust-analyzer
+            pkgs.rust-bin.stable.latest.default
+          ];
 
-            inputsFrom = with pkgs; [
-              postgresql_13
-              postgresql_14
-              postgresql_15
-              postgresql_16
-              postgresql_17
-              postgresql_18
-            ];
+          inputsFrom = with pkgs; [
+            postgresql_13
+            postgresql_14
+            postgresql_15
+            postgresql_16
+            postgresql_17
+            postgresql_18
+          ];
 
-            nativeBuildInputs = [
-              pkgs.rustPlatform.bindgenHook
-            ];
-          };
-        }
-      );
+          nativeBuildInputs = [
+            pkgs.rustPlatform.bindgenHook
+          ];
+        };
+      });
 
       packages = forAllSystems (
         pkgs:
@@ -176,6 +176,22 @@
         }
       );
 
-      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
+      formatter = forAllSystems (
+        pkgs:
+        pkgs.treefmt.withConfig {
+          runtimeInputs = [ pkgs.nixfmt-rfc-style ];
+
+          settings = {
+            # Log level for files treefmt won't format
+            on-unmatched = "info";
+
+            # Configure nixfmt for .nix files
+            formatter.nixfmt = {
+              command = "nixfmt";
+              includes = [ "*.nix" ];
+            };
+          };
+        }
+      );
     };
 }
