@@ -1,0 +1,39 @@
+name: Build Docker Image
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build pg13
+        run: nix build .#pg13
+
+      - name: Build pg14
+        run: nix build .#pg14
+
+      - name: Build pg15
+        run: nix build .#pg15
+
+      - name: Build pg16
+        run: nix build .#pg16
+
+      - name: Build pg17
+        run: nix build .#pg17
+
+      - name: Build pg18
+        run: nix build .#pg18
+
