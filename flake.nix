@@ -17,7 +17,7 @@
       forAllSystems =
         fn:
         let
-          systems = [ "x86_64-linux" ];
+          systems = [ "x86_64-linux" "aarch64-darwin" ];
           overlays = [ (import rust-overlay) ];
         in
         nixpkgs.lib.genAttrs systems (
@@ -32,25 +32,22 @@
     {
       devShells = forAllSystems (
         pkgs:
-        let
-          cargo-pgrx = import ./nix/pgrx.nix { inherit pkgs; };
-        in
         {
           default = pkgs.mkShell {
             buildInputs = [
-              cargo-pgrx
+              pkgs.cargo-pgrx
               pkgs.bacon
               pkgs.rust-analyzer
               pkgs.rust-bin.stable.latest.default
             ];
 
             inputsFrom = with pkgs; [
-              postgresql_12
               postgresql_13
               postgresql_14
               postgresql_15
               postgresql_16
               postgresql_17
+              postgresql_18
             ];
 
             nativeBuildInputs = [
