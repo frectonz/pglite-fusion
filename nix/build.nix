@@ -1,12 +1,12 @@
 {
   pkgs,
+  version,
   postgresql,
 }:
 (pkgs.buildPgrxExtension {
   pname = "pglite_fusion";
-  version = (pkgs.lib.importTOML ../Cargo.toml).package.version;
+  inherit version postgresql;
 
-  inherit postgresql;
   cargo-pgrx = pkgs.cargo-pgrx;
 
   src = pkgs.lib.cleanSource ../.;

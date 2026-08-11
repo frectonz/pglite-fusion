@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/*";
+    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1.*";
     rust-overlay.url = "https://flakehub.com/f/oxalica/rust-overlay/*";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -12,6 +12,8 @@
       rust-overlay,
     }:
     let
+      version = (nixpkgs.lib.importTOML ./Cargo.toml).package.version;
+
       forAllSystems =
         fn:
         let
@@ -52,6 +54,12 @@
           nativeBuildInputs = [
             pkgs.rustPlatform.bindgenHook
           ];
+
+          # clang needs an explicit SDK sysroot for pgrx-bindgen and the pgrx cshim
+          shellHook = pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+            export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT"
+            export CFLAGS="-isysroot $SDKROOT"
+          '';
         };
       });
 
@@ -59,7 +67,6 @@
         pkgs:
         let
           pname = "pglite-fusion";
-          version = "0.0.7";
 
           buildPgliteFusionImage =
             {
@@ -83,7 +90,7 @@
                 inherit version;
 
                 src = import ./nix/build.nix {
-                  inherit pkgs;
+                  inherit pkgs version;
                   postgresql = postgresDev;
                 };
 
@@ -168,7 +175,7 @@
       formatter = forAllSystems (
         pkgs:
         pkgs.treefmt.withConfig {
-          runtimeInputs = [ pkgs.nixfmt-rfc-style ];
+          runtimeInputs = [ pkgs.nixfmt ];
 
           settings = {
             on-unmatched = "info";
