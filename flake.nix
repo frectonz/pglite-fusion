@@ -58,8 +58,6 @@
       packages = forAllSystems (
         pkgs:
         let
-          cargo-pgrx = import ./nix/pgrx.nix { inherit pkgs; };
-
           pname = "pglite-fusion";
           version = "0.0.7";
 
@@ -91,9 +89,9 @@
 
                 buildPhase = ''
                   install --directory $out/usr/share/postgresql/${postgresMajor}/extension
-                  cp -r $src/nix/store/*/share/postgresql/extension/* $out/usr/share/postgresql/${postgresMajor}/extension
+                  cp -r $src/share/postgresql/extension/* $out/usr/share/postgresql/${postgresMajor}/extension
                   install --directory $out/usr/lib/postgresql/${postgresMajor}/lib
-                  cp -r $src/nix/store/*/lib/* $out/usr/lib/postgresql/${postgresMajor}/lib
+                  cp -r $src/lib/* $out/usr/lib/postgresql/${postgresMajor}/lib
                 '';
               };
             in
