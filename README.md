@@ -12,12 +12,6 @@ docker run --network=host frectonz/pglite-fusion
 
 `pglite-fusion` is also distributed with other PostgreSQL versions.
 
-### PostgreSQL 13
-
-```bash
-docker run --network=host frectonz/pglite-fusion:pg13
-```
-
 ### PostgreSQL 14
 
 ```bash
@@ -107,7 +101,7 @@ WHERE
 git clone git@github.com:frectonz/pglite-fusion.git 
 cd pglite-fusion
 nix develop
-cargo pgrx init --pg13 download # this will take some time, since you are compiling postgres from source
+cargo pgrx init --pg17 download # this will take some time, since you are compiling postgres from source
 cargo pgrx run # this will drop you into a psql repl, you can then follow the example shown above
 ```
 

@@ -19,9 +19,6 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build pg13
-        run: nix build .#pg13
-
       - name: Build pg14
         run: nix build .#pg14
 

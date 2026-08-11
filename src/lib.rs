@@ -4,7 +4,7 @@ use pgrx::prelude::*;
 use rusqlite::backup::Backup;
 use rusqlite::serialize::OwnedData;
 use rusqlite::Connection;
-use rusqlite::{types::Value as SqliteValue, DatabaseName};
+use rusqlite::{types::Value as SqliteValue, MAIN_DB};
 use serde::{Deserialize, Serialize};
 
 pgrx::pg_module_magic!();
@@ -37,7 +37,7 @@ impl Sqlite {
 
             let data = OwnedData::from_raw_nonnull(res_ptr, src_len);
 
-            conn.deserialize(DatabaseName::Main, data, false)
+            conn.deserialize(MAIN_DB, data, false)
                 .expect("couldn't deserialize the sqlite database");
         }
 
@@ -46,7 +46,7 @@ impl Sqlite {
 
     fn dump(conn: Connection) -> Self {
         let data = conn
-            .serialize(DatabaseName::Main)
+            .serialize(MAIN_DB)
             .expect("couldn't serialize database")
             .to_vec();
 
