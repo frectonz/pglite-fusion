@@ -152,6 +152,11 @@
             ;
 
           deploy = pkgs.writeShellScriptBin "deploy" ''
+            # CI runners ship a v1 /etc/containers/registries.conf, which skopeo no longer loads
+            export CONTAINERS_REGISTRIES_CONF="${pkgs.writeText "registries.conf" ''
+              unqualified-search-registries = [ "docker.io" ]
+            ''}"
+
             ${pkgs.skopeo}/bin/skopeo --insecure-policy copy docker-archive:${pg14} docker://docker.io/frectonz/${pname}:pg14-${version} --dest-creds="frectonz:$ACCESS_TOKEN"
             ${pkgs.skopeo}/bin/skopeo --insecure-policy copy docker://docker.io/frectonz/${pname}:pg14-${version} docker://docker.io/frectonz/${pname}:pg14 --dest-creds="frectonz:$ACCESS_TOKEN"
 
